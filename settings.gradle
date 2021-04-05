@@ -1,0 +1,5 @@
+include ':common'
+include ':library'
+include ':ffmpeg'
+include ':app'
+rootProject.name = "YoutubeDLJ"
