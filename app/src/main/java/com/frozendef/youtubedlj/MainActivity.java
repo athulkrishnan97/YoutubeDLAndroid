@@ -1,12 +1,23 @@
 package com.frozendef.youtubedlj;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
@@ -16,6 +27,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -52,22 +66,29 @@ public class MainActivity extends AppCompatActivity {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     boolean downloading=false;
     ImageView imgView;
-
-
+    Palette p;
+    ActionBar actionBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         isStoragePermissionGranted();
         createDownloadNotificationChannel();
+        actionBar=getSupportActionBar();
+
 
 
 
         initViews();
         initListeners();
+        etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
         handleIntents();
+
         //updateYoutubeDL();
         //startDownload();
+
+
+
 
 
     }
@@ -180,6 +201,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void getVideoThumbnail(Editable s){
+
+
+
+
+        if(s.toString().toLowerCase().contains("youtube.com")) {
+            String[] arr = s.toString().split("=");
+            String id = arr[arr.length - 1];
+            Glide.with(getApplication())
+                    .load("https://img.youtube.com/vi/" + id + "/0.jpg")
+                    .into(imgView);
+
+            setColorAccent("https://img.youtube.com/vi/" + id + "/0.jpg");
+
+        }
+
+        else if(s.toString().toLowerCase().contains("youtu.be")) {
+            String[] arr = s.toString().split("/");
+            String id = arr[arr.length - 1];
+            Glide.with(getApplication())
+                    .load("https://img.youtube.com/vi/" + id + "/0.jpg").into(imgView);
+            setColorAccent("https://img.youtube.com/vi/" + id + "/0.jpg");
+        }
+
+
+
+
+    }
+
+    private void setColorAccent(String id){
+        Glide.with(this).asBitmap()
+                .load(id)
+                .into(new SimpleTarget<Bitmap>(){
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        // Extract color
+                        p=Palette.from(resource).generate();
+                        actionBar.setBackgroundDrawable(new ColorDrawable (p.getDarkMutedColor(getResources().getColor(R.color.purple_200))));
+                        btnStartDownload.setBackgroundColor(p.getDarkMutedColor(getResources().getColor(R.color.purple_200)));
+                        //progressBar.setProgressTintList(p.getDarkMutedColor(getResources().getColor(R.color.purple_200)));
+                    }
+                });
+
+    }
+
+
 
     public void initListeners(){
 
@@ -204,10 +271,7 @@ public class MainActivity extends AppCompatActivity {
                                          @Override
                                          public void afterTextChanged(Editable s) {
 
-                                             String[] arr=s.toString().split("=");
-
-                                                String id=arr[arr.length-1];
-                                                Glide.with(getApplication()).load("https://img.youtube.com/vi/"+id+"/0.jpg").into(imgView);
+                                             getVideoThumbnail(s);
 
 
 
