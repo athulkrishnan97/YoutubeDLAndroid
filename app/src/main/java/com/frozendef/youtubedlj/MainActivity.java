@@ -3,17 +3,25 @@ package com.frozendef.youtubedlj;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import com.bumptech.glide.Glide;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,13 +51,15 @@ public class MainActivity extends AppCompatActivity {
     //private ProgressBar pbLoading;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     boolean downloading=false;
+    ImageView imgView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         isStoragePermissionGranted();
-
+        createDownloadNotificationChannel();
 
 
 
@@ -92,6 +103,81 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    NotificationCompat.Builder builder;
+
+    NotificationManagerCompat notificationManager;
+
+    private void showInitialNotification(){
+
+
+        int notificationId =1;
+        notificationManager = NotificationManagerCompat.from(this);
+        builder = new NotificationCompat.Builder(this, "downloadNotificationChannel");
+        builder.setContentTitle("YoutubeDLJ")
+                .setContentText("Download in progress")
+                .setSmallIcon(R.drawable.download)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true);
+
+        int PROGRESS_MAX = 100;
+        int PROGRESS_CURRENT = 0;
+        builder.setNotificationSilent();
+        builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
+        notificationManager.notify(notificationId, builder.build());
+
+       /* builder.setContentText("Download complete")
+                .setProgress(0,0,false);
+        notificationManager.notify(notificationId, builder.build());*/
+
+
+    }
+
+    private void updateNotification(int max, int current,int notificationId){
+        if(current==100)builder.setContentText("Finishing Up...");
+        builder.setProgress(max,current,false);
+        notificationManager.notify(notificationId,builder.build());
+
+    }
+
+    private void completeNotification(int notificationId,boolean successful){
+
+        NotificationCompat.Builder completedBuilder = new NotificationCompat.Builder(this, "downloadNotificationChannel");
+        completedBuilder.setContentTitle("")
+                .setSmallIcon(R.drawable.download)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setOngoing(false);
+
+        if(successful) {
+            completedBuilder.setContentText("Download Completed");
+
+        }
+        else {
+           completedBuilder.setContentText("Download Failed");
+        }
+        notificationManager.notify(notificationId, completedBuilder.build());
+
+    }
+
+
+
+
+
+    private void createDownloadNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Download Notification";
+            String description = "Notification for download progress";
+            String channelId="downloadNotificationChannel";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(channelId, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 
 
 
@@ -104,6 +190,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        etUrl.addTextChangedListener(new TextWatcher() {
+                                         @Override
+                                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                                         }
+
+                                         @Override
+                                         public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                                         }
+
+                                         @Override
+                                         public void afterTextChanged(Editable s) {
+
+                                             String[] arr=s.toString().split("=");
+
+                                                String id=arr[arr.length-1];
+                                                Glide.with(getApplication()).load("https://img.youtube.com/vi/"+id+"/0.jpg").into(imgView);
+
+
+
+                                         }
+                                     }
+        );
 
 
 
@@ -146,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
         tvDownloadStatus = findViewById(R.id.tv_status);
         etUrl=findViewById(R.id.etUrl);
         btnStartDownload= findViewById(R.id.btnDownload);
+        imgView = findViewById(R.id.imageView2);
 
 
 
@@ -183,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
             btnStartDownload.setEnabled(true);
             return;
         }
-
+        showInitialNotification();
 
         String url = etUrl.getText().toString().trim();
         //String url="https://www.youtube.com/watch?v=5LgiiYaa96Q";
@@ -216,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
                     tvDownloadStatus.setText("Download Completed");
                     Log.w("Command Output:",youtubeDLResponse.getOut());
                     Toast.makeText(getApplicationContext(), "Download completed", Toast.LENGTH_LONG).show();
+                    completeNotification(1,true);
                     downloading = false;
                     btnStartDownload.setEnabled(true);
                     progressBar.setProgress(0);
@@ -225,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
                     tvDownloadStatus.setText("Download Failed");
                     Log.e("Download error",e.getMessage());
                     Toast.makeText(getApplicationContext(), "Download failed", Toast.LENGTH_LONG).show();
+                    completeNotification(1,false);
                     downloading = false;
                     btnStartDownload.setEnabled(true);
                     progressBar.setProgress(0);
@@ -243,6 +356,9 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                         progressBar.setProgress((int) progress);
                         tvDownloadStatus.setText(progress + "% (ETA " + etaInSeconds + " seconds)");
+
+                        updateNotification(100,(int)progress,1);
+
 
                         if(progress==100){
                             tvDownloadStatus.setText("Finishing Up...");

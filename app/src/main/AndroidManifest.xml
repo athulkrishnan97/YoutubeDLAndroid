@@ -13,7 +13,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.YoutubeDLJ"
         android:requestLegacyExternalStorage="true">
-        <activity android:name=".MainActivity">
+       <activity android:name=".MainActivity">
+           <!--<intent-filter android:label="athul">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              &lt;!&ndash; Accepts URIs that begin with "http://www.example.com/gizmos” &ndash;&gt;
+              <data android:scheme="http"
+                  android:host="www.example.com"
+                  android:pathPrefix="/gizmos" />
+              &lt;!&ndash; note that the leading "/" is required for pathPrefix&ndash;&gt;
+          </intent-filter>-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
