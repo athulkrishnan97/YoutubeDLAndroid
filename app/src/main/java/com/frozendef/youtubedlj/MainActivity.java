@@ -5,32 +5,21 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
+import com.yausername.youtubedl_android.YoutubeDLResponse;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
@@ -57,7 +46,7 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private Button btnStartDownload;
-    private EditText etUrl;
+    protected EditText etUrl;
     private ProgressBar progressBar;
     private TextView tvDownloadStatus;
     private boolean updating;
@@ -68,12 +57,16 @@ public class MainActivity extends AppCompatActivity {
     ImageView imgView;
     Palette p;
     ActionBar actionBar;
+    NotificationModel notificationModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         isStoragePermissionGranted();
-        createDownloadNotificationChannel();
+        notificationModel = new NotificationModel(getApplicationContext());
+
+        notificationModel.createDownloadNotificationChannel();
         actionBar=getSupportActionBar();
 
 
@@ -82,25 +75,25 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         initListeners();
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
-        handleIntents();
+        getIntentAndPassToHandler();
 
         //updateYoutubeDL();
         //startDownload();
-
-
-
-
-
     }
 
-    public void handleIntents(){
+
+    public void getIntentAndPassToHandler(){
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
 
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
-                handleIntentLink(intent); // Handle text being sent
+
+                IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent);
+                intentHandler.handleIntentLink();
+
+                //handleIntentLink(intent); // Handle text being sent
             }
             else {
                 Toast.makeText(getApplicationContext(),"Unsupported Link",Toast.LENGTH_LONG).show();
@@ -109,102 +102,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void handleIntentLink(Intent intent){
-        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if (sharedText != null) {
-            if(sharedText.toLowerCase().contains("www.youtube.com") || sharedText.toLowerCase().contains("youtu.be")) {
-                Toast.makeText(getApplicationContext(), "Initialising download", Toast.LENGTH_LONG).show();
-                Log.w("TAG","Got the link from intent: "+sharedText);
-                etUrl.setText(sharedText);
-                startDownload();
-            }
-            else{
-                Toast.makeText(getApplicationContext(),"Unsupported Link",Toast.LENGTH_LONG).show();
-            }
-        }
-
-    }
-    NotificationCompat.Builder builder;
-
-    NotificationManagerCompat notificationManager;
-
-    private void showInitialNotification(){
-
-
-        int notificationId =1;
-        notificationManager = NotificationManagerCompat.from(this);
-        builder = new NotificationCompat.Builder(this, "downloadNotificationChannel");
-        builder.setContentTitle("YoutubeDLJ")
-                .setContentText("Download in progress")
-                .setSmallIcon(R.drawable.download)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(true);
-
-        int PROGRESS_MAX = 100;
-        int PROGRESS_CURRENT = 0;
-        builder.setNotificationSilent();
-        builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
-        notificationManager.notify(notificationId, builder.build());
-
-       /* builder.setContentText("Download complete")
-                .setProgress(0,0,false);
-        notificationManager.notify(notificationId, builder.build());*/
-
-
-    }
-
-    private void updateNotification(int max, int current,int notificationId){
-        if(current==100)builder.setContentText("Finishing Up...");
-        builder.setProgress(max,current,false);
-        notificationManager.notify(notificationId,builder.build());
-
-    }
-
-    private void completeNotification(int notificationId,boolean successful){
-
-        NotificationCompat.Builder completedBuilder = new NotificationCompat.Builder(this, "downloadNotificationChannel");
-        completedBuilder.setContentTitle("")
-                .setSmallIcon(R.drawable.download)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setOngoing(false);
-
-        if(successful) {
-            completedBuilder.setContentText("Download Completed");
-
-        }
-        else {
-           completedBuilder.setContentText("Download Failed");
-        }
-        notificationManager.notify(notificationId, completedBuilder.build());
-
-    }
-
-
-
-
-
-    private void createDownloadNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Download Notification";
-            String description = "Notification for download progress";
-            String channelId="downloadNotificationChannel";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(channelId, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-
     private void getVideoThumbnail(Editable s){
-
-
-
 
         if(s.toString().toLowerCase().contains("youtube.com")) {
             String[] arr = s.toString().split("=");
@@ -224,9 +122,6 @@ public class MainActivity extends AppCompatActivity {
                     .load("https://img.youtube.com/vi/" + id + "/0.jpg").into(imgView);
             setColorAccent("https://img.youtube.com/vi/" + id + "/0.jpg");
         }
-
-
-
 
     }
 
@@ -351,14 +246,20 @@ public class MainActivity extends AppCompatActivity {
         //pbLoading.setVisibility(View.VISIBLE);
     }
 
-    private void startDownload() {
+    YoutubeDLResponse youtubeDLResponseCopy;
+
+    protected void startDownload() {
         btnStartDownload.setEnabled(false);
+        if (p!=null){
+            //btnStartDownload.setBackgroundColor(p.getDarkVibrantColor(getResources().getColor(R.color.purple_200)));
+            btnStartDownload.setTextColor(getResources().getColor(R.color.grey));
+        }
         if (downloading) {
             Toast.makeText(getApplicationContext(), "Cannot start download. a download is already in progress", Toast.LENGTH_LONG).show();
             btnStartDownload.setEnabled(true);
             return;
         }
-        showInitialNotification();
+
 
         String url = etUrl.getText().toString().trim();
         //String url="https://www.youtube.com/watch?v=5LgiiYaa96Q";
@@ -379,19 +280,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         showStart();
-
         downloading = true;
-
+        notificationModel.showInitialNotification();
         Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, callback))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(youtubeDLResponse -> {
+                    youtubeDLResponseCopy=youtubeDLResponse;
 //                    pbLoading.setVisibility(View.GONE);
                     progressBar.setProgress(100);
                     tvDownloadStatus.setText("Download Completed");
                     Log.w("Command Output:",youtubeDLResponse.getOut());
                     Toast.makeText(getApplicationContext(), "Download completed", Toast.LENGTH_LONG).show();
-                    completeNotification(1,true);
+                    notificationModel.completeNotification(1,true);
                     downloading = false;
                     btnStartDownload.setEnabled(true);
                     progressBar.setProgress(0);
@@ -400,8 +301,10 @@ public class MainActivity extends AppCompatActivity {
                     //pbLoading.setVisibility(View.GONE);
                     tvDownloadStatus.setText("Download Failed");
                     Log.e("Download error",e.getMessage());
+                    Log.w("Command Output:",youtubeDLResponseCopy.getOut());
+
                     Toast.makeText(getApplicationContext(), "Download failed", Toast.LENGTH_LONG).show();
-                    completeNotification(1,false);
+                    notificationModel.completeNotification(1,false);
                     downloading = false;
                     btnStartDownload.setEnabled(true);
                     progressBar.setProgress(0);
@@ -421,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                         progressBar.setProgress((int) progress);
                         tvDownloadStatus.setText(progress + "% (ETA " + etaInSeconds + " seconds)");
 
-                        updateNotification(100,(int)progress,1);
+                notificationModel.updateNotification(100,(int)progress,1);
 
 
                         if(progress==100){
