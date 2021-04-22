@@ -77,16 +77,27 @@ public class MainActivity extends AppCompatActivity {
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
         getIntentAndPassToHandler();
 
+
+
         //updateYoutubeDL();
         //startDownload();
     }
 
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        getIntentAndPassToHandler();
+
+        super.onNewIntent(intent);
+    }
+
     public void getIntentAndPassToHandler(){
+
+
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
-
+        Log.w("Intent","Got the link: "+intent.getStringExtra(Intent.EXTRA_TEXT));
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
 
