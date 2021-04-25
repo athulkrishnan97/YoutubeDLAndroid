@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         getIntentAndPassToHandler(intent);
 
-        /*new DownloadFragment().show(
-                getSupportFragmentManager(), DownloadFragment.TAG);*/
+        new DownloadFragment().show(
+                getSupportFragmentManager(), DownloadFragment.TAG);
 
         //updateYoutubeDL();
         //startDownload();
@@ -93,6 +93,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getIntentAndPassToHandler(Intent intent){
+
+        //DownloadFragment downloadFragment= new DownloadFragment();
+
+
+
 
 
 
