@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView imgView;
     Palette p;
     ActionBar actionBar;
-
+    FragmentManager fragmentManager;
     NotificationModel notificationModel;
     TextView tvName;
 
@@ -70,13 +71,14 @@ public class MainActivity extends AppCompatActivity {
         notificationModel = new NotificationModel(getApplicationContext());
         notificationModel.createDownloadNotificationChannel();
         initViews();
+        fragmentManager=getSupportFragmentManager();
         initListeners();
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
         Intent intent = getIntent();
         getIntentAndPassToHandler(intent);
 
-        new DownloadFragment().show(
-                getSupportFragmentManager(), DownloadFragment.TAG);
+       /* new DownloadFragment().show(
+                getSupportFragmentManager(), DownloadFragment.TAG);*/
 
         //updateYoutubeDL();
         //startDownload();
@@ -107,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
 
-                IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent);
+                IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent,fragmentManager);
                 intentHandler.handleIntentLink();
 
 
@@ -119,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void getVideoThumbnail(Editable s){
+    private void getVideoThumbnail(Editable s, ImageView imgView){
 
         if(s.toString().toLowerCase().contains("youtube.com")) {
             String[] arr = s.toString().split("=");
@@ -183,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                                          @Override
                                          public void afterTextChanged(Editable s) {
 
-                                             getVideoThumbnail(s);
+                                             getVideoThumbnail(s,imgView);
 
 
 
