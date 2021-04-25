@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         initListeners();
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
-        getIntentAndPassToHandler();
+        Intent intent = getIntent();
+        getIntentAndPassToHandler(intent);
 
 
 
@@ -83,18 +84,16 @@ public class MainActivity extends AppCompatActivity {
         //startDownload();
     }
 
-
     @Override
     protected void onNewIntent(Intent intent) {
-        getIntentAndPassToHandler();
-
+        getIntentAndPassToHandler(intent);
         super.onNewIntent(intent);
     }
 
-    public void getIntentAndPassToHandler(){
+    public void getIntentAndPassToHandler(Intent intent){
 
 
-        Intent intent = getIntent();
+
         String action = intent.getAction();
         String type = intent.getType();
         Log.w("Intent","Got the link: "+intent.getStringExtra(Intent.EXTRA_TEXT));
@@ -261,9 +260,10 @@ public class MainActivity extends AppCompatActivity {
 
     protected void startDownload() {
         btnStartDownload.setEnabled(false);
+        btnStartDownload.setTextColor(getResources().getColor(R.color.white));
         if (p!=null){
             //btnStartDownload.setBackgroundColor(p.getDarkVibrantColor(getResources().getColor(R.color.purple_200)));
-            btnStartDownload.setTextColor(getResources().getColor(R.color.grey));
+           // btnStartDownload.setTextColor(getResources().getColor(R.color.grey));
         }
         if (downloading) {
             Toast.makeText(getApplicationContext(), "Cannot start download. a download is already in progress", Toast.LENGTH_LONG).show();
