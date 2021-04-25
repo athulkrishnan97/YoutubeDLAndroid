@@ -15,6 +15,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
+import java.util.Objects;
+
 public class DownloadFragment extends DialogFragment {
 
 
@@ -23,7 +25,7 @@ public class DownloadFragment extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         //setStyle(DialogFragment.STYLE_NORMAL, R.style.dialog_style);
        // getDialog().getWindow().requestFeature(Window.FEATURE_CUSTOM_TITLE);
-        getDialog().setTitle("HEllo");
+        Objects.requireNonNull(getDialog()).setTitle("Download Options");
         //getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         return inflater.inflate(R.layout.dialog_layout,container);
     }
@@ -36,10 +38,7 @@ public class DownloadFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
     }
 
-    @Override
-    public void show(@NonNull FragmentManager manager, @Nullable String tag) {
-        super.show(manager, tag);
-    }
+
 
     public static String TAG = "Dialog";
 }
