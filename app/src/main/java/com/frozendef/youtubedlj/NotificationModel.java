@@ -53,6 +53,7 @@ public class NotificationModel {
         builder.setProgress(max,current,false);
         notificationManager.notify(notificationId,builder.build());
 
+
     }
 
     protected void completeNotification(int notificationId,boolean successful){
@@ -75,7 +76,9 @@ public class NotificationModel {
     }
 
 
-
+    protected void cancelAllNotification(){
+        notificationManager.cancelAll();
+    }
 
 
     protected void createDownloadNotificationChannel() {

@@ -6,4 +6,6 @@
             android:icon="@drawable/upgrade"
             android:title="Update Library"/>
             <!--app:showAsAction="ifRoom"/>-->
+        <item android:id="@+id/exit"
+            android:title="Exit"/>
 </menu>

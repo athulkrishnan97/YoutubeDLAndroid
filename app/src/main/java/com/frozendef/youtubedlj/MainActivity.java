@@ -16,6 +16,7 @@ import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.YoutubeDLResponse;
 
 import android.Manifest;
+import android.app.StatusBarManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -57,7 +58,9 @@ public class MainActivity extends AppCompatActivity {
     ImageView imgView;
     Palette p;
     ActionBar actionBar;
+
     NotificationModel notificationModel;
+    TextView tvName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,23 +68,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         isStoragePermissionGranted();
         notificationModel = new NotificationModel(getApplicationContext());
-
         notificationModel.createDownloadNotificationChannel();
-        actionBar=getSupportActionBar();
-
-
-
-
         initViews();
         initListeners();
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
         Intent intent = getIntent();
         getIntentAndPassToHandler(intent);
 
-
+        /*new DownloadFragment().show(
+                getSupportFragmentManager(), DownloadFragment.TAG);*/
 
         //updateYoutubeDL();
         //startDownload();
+    }
+
+    public void getVideoName(){
+
     }
 
     @Override
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                 IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent);
                 intentHandler.handleIntentLink();
 
-                //handleIntentLink(intent); // Handle text being sent
+
             }
             else {
                 Toast.makeText(getApplicationContext(),"Unsupported Link",Toast.LENGTH_LONG).show();
@@ -208,25 +210,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.updateLibrary:
-                updateYoutubeDL();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        int itemId = item.getItemId();
+        if (itemId == R.id.updateLibrary) {
+            updateYoutubeDL();
+            return true;
+        } else if (itemId == R.id.exit) {
+            exitApp();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
-
+    public void exitApp(){
+        notificationModel.cancelAllNotification();
+        finishAndRemoveTask();
+        System.exit(0);
+    }
 
     public void initViews(){
-
+        tvName = findViewById(R.id.tvName);
         progressBar=findViewById(R.id.progressBar);
         tvDownloadStatus = findViewById(R.id.tv_status);
         etUrl=findViewById(R.id.etUrl);
         btnStartDownload= findViewById(R.id.btnDownload);
         imgView = findViewById(R.id.imageView2);
-
+        actionBar=getSupportActionBar();
 
 
     }
@@ -261,10 +269,7 @@ public class MainActivity extends AppCompatActivity {
     protected void startDownload() {
         btnStartDownload.setEnabled(false);
         btnStartDownload.setTextColor(getResources().getColor(R.color.white));
-        if (p!=null){
-            //btnStartDownload.setBackgroundColor(p.getDarkVibrantColor(getResources().getColor(R.color.purple_200)));
-           // btnStartDownload.setTextColor(getResources().getColor(R.color.grey));
-        }
+
         if (downloading) {
             Toast.makeText(getApplicationContext(), "Cannot start download. a download is already in progress", Toast.LENGTH_LONG).show();
             btnStartDownload.setEnabled(true);
