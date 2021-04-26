@@ -21,7 +21,7 @@ public class VideoNameResolver {
 
 
 
-    public void putVideoNameToTextView(String url, TextView textView)
+    public void getNameFromUrl(String url,ResponseCallback responseCallback)
     {
         YoutubeDLRequest request = new YoutubeDLRequest(url);
         request.addOption("--get-title");
@@ -33,10 +33,6 @@ public class VideoNameResolver {
                 .subscribe(youtubeDLResponse -> {
                     youtubeDLResponseCopy=youtubeDLResponse;
                     Log.w("Command Output:",youtubeDLResponse.getOut());
-                    textView.setText(youtubeDLResponse.getOut());
-
-
-
 
                 }, e -> {
                     if(BuildConfig.DEBUG) Log.e("TAG",  "Failed to download", e);
@@ -47,17 +43,7 @@ public class VideoNameResolver {
         compositeDisposable.add(disposable);
 
     }
-    public ResponseCallback responseCallback= new ResponseCallback() {
-        @Override
-        public void onResponseReceived(String out) {
 
-            Log.w("VideoNameResolver","got response"+out);
-        }
 
-        @Override
-        public void onErrorReceived(String out) {
-            Log.w("VideoNameResolverError","got Error "+out);
-        }
-    };
 
 }
