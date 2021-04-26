@@ -278,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void startDownload() {
         btnStartDownload.setEnabled(false);
+        btnStartDownload.setText("Downloading...");
         btnStartDownload.setTextColor(getResources().getColor(R.color.white));
 
         if (downloading) {
@@ -294,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
             etUrl.setError("Enter a proper URL");
             Toast.makeText(getApplicationContext(),"Enter a proper URL",Toast.LENGTH_LONG).show();
             btnStartDownload.setEnabled(true);
+            btnStartDownload.setText("Download");
             return;
         }
 
@@ -319,9 +321,10 @@ public class MainActivity extends AppCompatActivity {
                     tvDownloadStatus.setText("Download Completed");
                     Log.w("Command Output:",youtubeDLResponse.getOut());
                     Toast.makeText(getApplicationContext(), "Download completed", Toast.LENGTH_LONG).show();
-                    notificationModel.completeNotification(1,true);
+                    notificationModel.completeNotification(1,true,tvName.getText().toString());
                     downloading = false;
                     btnStartDownload.setEnabled(true);
+                    btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
                 }, e -> {
                     if(BuildConfig.DEBUG) Log.e("TAG",  "Failed to download", e);
@@ -331,9 +334,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.w("Command Output:",youtubeDLResponseCopy.getOut());
 
                     Toast.makeText(getApplicationContext(), "Download failed", Toast.LENGTH_LONG).show();
-                    notificationModel.completeNotification(1,false);
+                    notificationModel.completeNotification(1,false,"Video Download Failed");
                     downloading = false;
                     btnStartDownload.setEnabled(true);
+                    btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
                 });
         compositeDisposable.add(disposable);
@@ -351,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onErrorReceived(String out) {
+            notificationModel.completeNotification(1,false,"Video Download Failed");
             //Toast.makeText(getApplicationContext(),"Got Error"+out,Toast.LENGTH_LONG).show();
         }
     };
