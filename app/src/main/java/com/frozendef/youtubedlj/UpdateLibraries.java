@@ -47,7 +47,7 @@ public class UpdateLibraries {
                     }
                     updating = false;
                 }, e -> {
-                    if(BuildConfig.DEBUG) Log.w("Update", "failed to update", e);
+                    Log.w("Update", "failed to update", e);
                     //progressBar.setVisibility(View.GONE);
                     Toast.makeText(context, "Update failed", Toast.LENGTH_LONG).show();
                     updating = false;

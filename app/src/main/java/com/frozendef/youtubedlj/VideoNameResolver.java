@@ -35,7 +35,7 @@ public class VideoNameResolver {
                     Log.w("Command Output:",youtubeDLResponse.getOut());
 
                 }, e -> {
-                    if(BuildConfig.DEBUG) Log.e("TAG",  "Failed to download", e);
+                    Log.e("TAG",  "Failed to download", e);
                     //pbLoading.setVisibility(View.GONE);
                     Log.e("Download error",e.getMessage());
 

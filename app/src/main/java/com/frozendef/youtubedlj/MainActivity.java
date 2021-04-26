@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     NotificationModel notificationModel;
     TextView tvName;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -261,8 +262,8 @@ public class MainActivity extends AppCompatActivity {
 
     @NonNull
     private File getDownloadLocation() {
-        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File youtubeDLDir = new File(downloadsDir, "youtubedl-android");
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File youtubeDLDir = new File(downloadsDir, "Youtube MP3s");
         if (!youtubeDLDir.exists()) youtubeDLDir.mkdir();
         return youtubeDLDir;
     }
@@ -301,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
         request.addOption("-o", youtubeDLDir.getAbsolutePath() + "/%(title)s.%(ext)s");
         request.addOption("-x");
         request.addOption("--audio-format", "mp3");
+        request.addOption("--embed-thumbnail");
 
 
 
@@ -343,13 +345,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onResponseReceived(String out) {
 
-            Toast.makeText(getApplicationContext(),"Got response"+out,Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(),"Got response"+out,Toast.LENGTH_LONG).show();
 
         }
 
         @Override
         public void onErrorReceived(String out) {
-            Toast.makeText(getApplicationContext(),"Got Error"+out,Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(),"Got Error"+out,Toast.LENGTH_LONG).show();
         }
     };
 

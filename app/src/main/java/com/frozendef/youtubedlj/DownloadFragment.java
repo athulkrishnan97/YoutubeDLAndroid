@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.bumptech.glide.Glide;
 import com.yausername.youtubedl_android.ResponseCallback;
@@ -27,12 +28,17 @@ public class DownloadFragment extends DialogFragment {
 
     String url;
     Context context;
-    DownloadFragment(String url, Context context){
+    FragmentManager fragmentManager;
+    DownloadFragment(String url, Context context, FragmentManager fragmentManager){
         this.url=url;
         this.context=context;
+        this.fragmentManager=fragmentManager;
     }
 
     Button downloadButtonInDialog;
+    ProgressBar progressBarName;
+    ProgressBar progressBarImage;
+    String videoName="";
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -41,28 +47,24 @@ public class DownloadFragment extends DialogFragment {
         tvName.setText("Getting Video Details...");
         getVideoThumbnail(url,imageView);
         putVideoNameToTextView(url,tvName);
-        //ProgressBar progressBarName = view.findViewById(R.id.progressCircleName);
-        //ProgressBar progressBarImage = view.findViewById(R.id.progressCircleImage);
-        //downloadButtonInDialog = view.findViewById(R.id.downloadButtonInDialog);
-        //downloadButtonInDialog.setEnabled(false);
-        tvName.addTextChangedListener(new TextWatcher() {
+        progressBarName = view.findViewById(R.id.progressCircleName);
+        progressBarImage = view.findViewById(R.id.progressCircleImage);
+        downloadButtonInDialog = view.findViewById(R.id.downloadBttonInDialog);
+        downloadButtonInDialog.setEnabled(false);
+
+        downloadButtonInDialog.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                //progressBarName.setVisibility(View.INVISIBLE);
-                //progressBarImage.setVisibility(View.INVISIBLE);
-
+            public void onClick(View v) {
+                ((MainActivity) context).etUrl.setText(url);
+                ((MainActivity) context).tvName.setText(videoName);
+                ((MainActivity) context).startDownload();
+               fragmentManager.beginTransaction().remove(Objects.requireNonNull(fragmentManager.findFragmentByTag(DownloadFragment.TAG))).commit();
             }
         });
+
+
+
+
 
     }
 
@@ -81,7 +83,10 @@ public class DownloadFragment extends DialogFragment {
                     @Override
                     public void run() {
                         tv.setText(out);
-                        //downloadButtonInDialog.setEnabled(true);
+                        videoName=out;
+                        downloadButtonInDialog.setEnabled(true);
+                        progressBarName.setVisibility(View.GONE);
+                        progressBarImage.setVisibility(View.INVISIBLE);
                     }
                 };
                 mainHandler.post(myRunnable);
