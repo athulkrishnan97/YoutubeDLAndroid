@@ -33,7 +33,6 @@ public class YoutubeDL {
     private static final String youtubeDLBin = "__main__.py";
     protected static final String youtubeDLFile = "youtube_dl.zip";
     private static final String pythonLibVersion = "pythonLibVersion";
-
     private boolean initialized = false;
     private File pythonPath;
     private File youtubeDLPath;
@@ -126,7 +125,7 @@ public class YoutubeDL {
     @NonNull
     public VideoInfo getInfo(YoutubeDLRequest request) throws YoutubeDLException, InterruptedException {
         request.addOption("--dump-json");
-        YoutubeDLResponse response = execute(request, null);
+        YoutubeDLResponse response = execute(request, null,null);
 
         VideoInfo videoInfo;
         try {
@@ -143,10 +142,10 @@ public class YoutubeDL {
     }
 
     public YoutubeDLResponse execute(YoutubeDLRequest request) throws YoutubeDLException, InterruptedException {
-        return execute(request, null);
+        return execute(request, null,null);
     }
 
-    public YoutubeDLResponse execute(YoutubeDLRequest request, @Nullable DownloadProgressCallback callback) throws YoutubeDLException, InterruptedException {
+    public YoutubeDLResponse execute(YoutubeDLRequest request, @Nullable DownloadProgressCallback callback,@Nullable ResponseCallback responseCallback) throws YoutubeDLException, InterruptedException {
         assertInit();
 
         // disable caching unless explicitly requested
@@ -204,6 +203,11 @@ public class YoutubeDL {
         long elapsedTime = System.currentTimeMillis() - startTime;
 
         youtubeDLResponse = new YoutubeDLResponse(command, exitCode, elapsedTime, out, err);
+        assert responseCallback != null;
+        responseCallback.onResponseReceived(out);
+        if(err.length()>4)
+        responseCallback.onErrorReceived(err);
+
 
         return youtubeDLResponse;
     }

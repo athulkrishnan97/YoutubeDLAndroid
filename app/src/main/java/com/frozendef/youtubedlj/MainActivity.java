@@ -5,12 +5,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.palette.graphics.Palette;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
+import com.yausername.youtubedl_android.ResponseCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.YoutubeDLResponse;
@@ -58,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView imgView;
     Palette p;
     ActionBar actionBar;
-
+    FragmentManager fragmentManager;
     NotificationModel notificationModel;
     TextView tvName;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,16 +73,18 @@ public class MainActivity extends AppCompatActivity {
         notificationModel = new NotificationModel(getApplicationContext());
         notificationModel.createDownloadNotificationChannel();
         initViews();
+        fragmentManager=getSupportFragmentManager();
         initListeners();
         etUrl.setText("https://www.youtube.com/watch?v=5LgiiYaa96Q");
         Intent intent = getIntent();
         getIntentAndPassToHandler(intent);
 
-        /*new DownloadFragment().show(
+       /* new DownloadFragment().show(
                 getSupportFragmentManager(), DownloadFragment.TAG);*/
 
         //updateYoutubeDL();
         //startDownload();
+
     }
 
     public void getVideoName(){
@@ -94,6 +99,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void getIntentAndPassToHandler(Intent intent){
 
+        //DownloadFragment downloadFragment= new DownloadFragment();
+
+
+
+
 
 
         String action = intent.getAction();
@@ -102,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
 
-                IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent);
+                IntentHandler intentHandler = new IntentHandler(MainActivity.this,intent,fragmentManager);
                 intentHandler.handleIntentLink();
 
 
@@ -114,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void getVideoThumbnail(Editable s){
+    private void getVideoThumbnail(Editable s, ImageView imgView){
 
         if(s.toString().toLowerCase().contains("youtube.com")) {
             String[] arr = s.toString().split("=");
@@ -178,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                                          @Override
                                          public void afterTextChanged(Editable s) {
 
-                                             getVideoThumbnail(s);
+                                             getVideoThumbnail(s,imgView);
 
 
 
@@ -252,8 +262,8 @@ public class MainActivity extends AppCompatActivity {
 
     @NonNull
     private File getDownloadLocation() {
-        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File youtubeDLDir = new File(downloadsDir, "youtubedl-android");
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File youtubeDLDir = new File(downloadsDir, "Youtube MP3s");
         if (!youtubeDLDir.exists()) youtubeDLDir.mkdir();
         return youtubeDLDir;
     }
@@ -268,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void startDownload() {
         btnStartDownload.setEnabled(false);
+        btnStartDownload.setText("Downloading...");
         btnStartDownload.setTextColor(getResources().getColor(R.color.white));
 
         if (downloading) {
@@ -284,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
             etUrl.setError("Enter a proper URL");
             Toast.makeText(getApplicationContext(),"Enter a proper URL",Toast.LENGTH_LONG).show();
             btnStartDownload.setEnabled(true);
+            btnStartDownload.setText("Download");
             return;
         }
 
@@ -292,13 +304,14 @@ public class MainActivity extends AppCompatActivity {
         request.addOption("-o", youtubeDLDir.getAbsolutePath() + "/%(title)s.%(ext)s");
         request.addOption("-x");
         request.addOption("--audio-format", "mp3");
+        request.addOption("--embed-thumbnail");
 
 
 
         showStart();
         downloading = true;
         notificationModel.showInitialNotification();
-        Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, callback))
+        Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, callback,responseCallback))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(youtubeDLResponse -> {
@@ -308,9 +321,10 @@ public class MainActivity extends AppCompatActivity {
                     tvDownloadStatus.setText("Download Completed");
                     Log.w("Command Output:",youtubeDLResponse.getOut());
                     Toast.makeText(getApplicationContext(), "Download completed", Toast.LENGTH_LONG).show();
-                    notificationModel.completeNotification(1,true);
+                    notificationModel.completeNotification(1,true,tvName.getText().toString());
                     downloading = false;
                     btnStartDownload.setEnabled(true);
+                    btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
                 }, e -> {
                     if(BuildConfig.DEBUG) Log.e("TAG",  "Failed to download", e);
@@ -320,9 +334,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.w("Command Output:",youtubeDLResponseCopy.getOut());
 
                     Toast.makeText(getApplicationContext(), "Download failed", Toast.LENGTH_LONG).show();
-                    notificationModel.completeNotification(1,false);
+                    notificationModel.completeNotification(1,false,"Video Download Failed");
                     downloading = false;
                     btnStartDownload.setEnabled(true);
+                    btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
                 });
         compositeDisposable.add(disposable);
@@ -330,10 +345,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private ResponseCallback responseCallback= new ResponseCallback() {
+        @Override
+        public void onResponseReceived(String out) {
 
+            //Toast.makeText(getApplicationContext(),"Got response"+out,Toast.LENGTH_LONG).show();
+
+        }
+
+        @Override
+        public void onErrorReceived(String out) {
+            notificationModel.completeNotification(1,false,"Video Download Failed");
+            //Toast.makeText(getApplicationContext(),"Got Error"+out,Toast.LENGTH_LONG).show();
+        }
+    };
 
 
     private DownloadProgressCallback callback = new DownloadProgressCallback() {
+
+
         @Override
         public void onProgressUpdate(float progress, long etaInSeconds) {
             runOnUiThread(() -> {
@@ -352,6 +382,7 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
         }
+
     };
 
 

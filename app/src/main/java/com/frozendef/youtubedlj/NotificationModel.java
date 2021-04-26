@@ -56,10 +56,10 @@ public class NotificationModel {
 
     }
 
-    protected void completeNotification(int notificationId,boolean successful){
+    protected void completeNotification(int notificationId,boolean successful,String videoName){
 
         NotificationCompat.Builder completedBuilder = new NotificationCompat.Builder(context, "downloadNotificationChannel");
-        completedBuilder.setContentTitle("")
+        completedBuilder.setContentTitle(videoName)
                 .setSmallIcon(R.drawable.download)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOngoing(false);
