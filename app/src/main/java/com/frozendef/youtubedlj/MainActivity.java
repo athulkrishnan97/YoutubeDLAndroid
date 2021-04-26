@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.yausername.youtubedl_android.DownloadProgressCallback;
+import com.yausername.youtubedl_android.ResponseCallback;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.YoutubeDLResponse;
@@ -305,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         showStart();
         downloading = true;
         notificationModel.showInitialNotification();
-        Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, callback))
+        Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, callback,responseCallback))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(youtubeDLResponse -> {
@@ -337,10 +338,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private ResponseCallback responseCallback= new ResponseCallback() {
+        @Override
+        public void onResponseReceived(String out) {
 
+            Toast.makeText(getApplicationContext(),"Got response"+out,Toast.LENGTH_LONG).show();
+
+        }
+
+        @Override
+        public void onErrorReceived(String out) {
+            Toast.makeText(getApplicationContext(),"Got Error"+out,Toast.LENGTH_LONG).show();
+        }
+    };
 
 
     private DownloadProgressCallback callback = new DownloadProgressCallback() {
+
+
         @Override
         public void onProgressUpdate(float progress, long etaInSeconds) {
             runOnUiThread(() -> {
@@ -359,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
         }
+
     };
 
 

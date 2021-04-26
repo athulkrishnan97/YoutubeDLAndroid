@@ -1,23 +1,16 @@
 package com.frozendef.youtubedlj;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentManager;
 
 import com.bumptech.glide.Glide;
 
@@ -40,6 +33,14 @@ public class DownloadFragment extends DialogFragment {
         ImageView imageView= view.findViewById(R.id.imageViewDialog);
         tvName.setText(url);
         getVideoThumbnail(url,imageView);
+        putVideoNameToTextView(url,tvName);
+    }
+
+    private void putVideoNameToTextView(String url, TextView tv){
+        VideoNameResolver videoNameResolver =new VideoNameResolver();
+        videoNameResolver.putVideoNameToTextView(url,tv);
+
+
     }
 
 
