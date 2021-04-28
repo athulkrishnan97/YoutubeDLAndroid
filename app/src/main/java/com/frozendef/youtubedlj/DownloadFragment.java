@@ -39,6 +39,8 @@ public class DownloadFragment extends DialogFragment {
     ProgressBar progressBarName;
     ProgressBar progressBarImage;
     String videoName="";
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -55,10 +57,12 @@ public class DownloadFragment extends DialogFragment {
         downloadButtonInDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                dismiss();
                 ((MainActivity) context).etUrl.setText(url);
                 ((MainActivity) context).tvName.setText(videoName);
                 ((MainActivity) context).startDownload();
-               fragmentManager.beginTransaction().remove(Objects.requireNonNull(fragmentManager.findFragmentByTag(DownloadFragment.TAG))).commit();
+
+
             }
         });
 
@@ -77,7 +81,7 @@ public class DownloadFragment extends DialogFragment {
         ResponseCallback responseCallback= new ResponseCallback() {
             @Override
             public void onResponseReceived(String out) {
-                Log.w("DownloadFragment","got OUT--------------:> "+out);
+                Log.w("DownloadFragment",out);
                 Handler mainHandler = new Handler(context.getMainLooper());
                 Runnable myRunnable = new Runnable() {
                     @Override
