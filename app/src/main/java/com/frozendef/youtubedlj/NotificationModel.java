@@ -77,7 +77,9 @@ public class NotificationModel {
 
 
     protected void cancelAllNotification(){
+        if (notificationManager!=null)
         notificationManager.cancelAll();
+
     }
 
 

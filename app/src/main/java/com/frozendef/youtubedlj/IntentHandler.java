@@ -36,13 +36,18 @@ public class IntentHandler {
                 if(fragmentManager.findFragmentByTag(DownloadFragment.TAG)==null) {
 
                     DownloadFragment downloadFragment = new DownloadFragment(sharedText, context,fragmentManager);
-                    downloadFragment.show(fragmentManager, DownloadFragment.TAG);
+                    //downloadFragment.show(fragmentManager, DownloadFragment.TAG);
+                    fragmentManager.beginTransaction().add(downloadFragment,DownloadFragment.TAG).commitAllowingStateLoss();
                 }
                 else {
                    // fragmentManager.findFragmentByTag(DownloadFragment.TAG).rem
                     fragmentManager.beginTransaction().remove(Objects.requireNonNull(fragmentManager.findFragmentByTag(DownloadFragment.TAG))).commit();
                     DownloadFragment downloadFragment = new DownloadFragment(sharedText, context,fragmentManager);
-                    downloadFragment.show(fragmentManager, DownloadFragment.TAG);
+                    fragmentManager.beginTransaction().add(downloadFragment,DownloadFragment.TAG).commitAllowingStateLoss();
+
+
+                    //downloadFragment.show(fragmentManager, DownloadFragment.TAG);
+                    //fragmentManager.beginTransaction().show(downloadFragment).commitAllowingStateLoss();
                 }
 
 

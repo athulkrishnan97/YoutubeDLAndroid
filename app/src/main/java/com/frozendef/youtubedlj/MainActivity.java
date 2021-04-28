@@ -18,11 +18,12 @@ import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.YoutubeDLResponse;
 
 import android.Manifest;
-import android.app.StatusBarManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
@@ -46,6 +47,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import java.io.File;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     private Button btnStartDownload;
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     FragmentManager fragmentManager;
     NotificationModel notificationModel;
     TextView tvName;
-
+    String pathToDownloadedMP3 ="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,8 +89,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void getVideoName(){
-
+    public void removeFragment(String TAG){
+        fragmentManager.beginTransaction().remove(Objects.requireNonNull(fragmentManager.findFragmentByTag(TAG))).commit();
     }
 
     @Override
@@ -158,8 +160,11 @@ public class MainActivity extends AppCompatActivity {
                         actionBar.setBackgroundDrawable(new ColorDrawable (p.getDarkMutedColor(getResources().getColor(R.color.purple_200))));
                         btnStartDownload.setBackgroundColor(p.getDarkMutedColor(getResources().getColor(R.color.purple_200)));
                         //progressBar.setProgressTintList(p.getDarkMutedColor(getResources().getColor(R.color.purple_200)));
+                        getWindow().setStatusBarColor(p.getDarkVibrantColor(getResources().getColor(R.color.purple_200)));
+
                     }
                 });
+
 
     }
 
@@ -233,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void exitApp(){
         notificationModel.cancelAllNotification();
+        compositeDisposable.dispose();
         finishAndRemoveTask();
         System.exit(0);
     }
@@ -262,8 +268,8 @@ public class MainActivity extends AppCompatActivity {
 
     @NonNull
     private File getDownloadLocation() {
-        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        File youtubeDLDir = new File(downloadsDir, "Youtube MP3s");
+        File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File youtubeDLDir = new File(musicDir, "Youtube MP3s");
         if (!youtubeDLDir.exists()) youtubeDLDir.mkdir();
         return youtubeDLDir;
     }
@@ -326,6 +332,21 @@ public class MainActivity extends AppCompatActivity {
                     btnStartDownload.setEnabled(true);
                     btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
+
+
+                    MediaScannerConnection.scanFile(this,
+                            new String[] {pathToDownloadedMP3}, null,
+                            new MediaScannerConnection.OnScanCompletedListener() {
+                                public void onScanCompleted(String path, Uri uri) {
+                                    Log.i("Scanning file for mediaplayers", "Scanned " + path + ":");
+                                    Log.i("Scanning file for mediaplayers", "-> uri=" + uri);
+                                }
+                            });
+
+
+
+
+
                 }, e -> {
                     if(BuildConfig.DEBUG) Log.e("TAG",  "Failed to download", e);
                     //pbLoading.setVisibility(View.GONE);
@@ -339,6 +360,8 @@ public class MainActivity extends AppCompatActivity {
                     btnStartDownload.setEnabled(true);
                     btnStartDownload.setText("Download");
                     progressBar.setProgress(0);
+
+
                 });
         compositeDisposable.add(disposable);
 
@@ -363,6 +386,14 @@ public class MainActivity extends AppCompatActivity {
 
     private DownloadProgressCallback callback = new DownloadProgressCallback() {
 
+        @Override
+        public void onFileNameReceived(String receivedFileName) {
+            //Changes the file name to end in .mp3 as that's how the final file will be saved
+            StringBuilder str= new StringBuilder(receivedFileName);
+            str.replace(str.length()-4,str.length(),"mp3");
+            pathToDownloadedMP3 = str.toString();
+
+        }
 
         @Override
         public void onProgressUpdate(float progress, long etaInSeconds) {

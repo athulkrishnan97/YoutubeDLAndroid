@@ -18,6 +18,7 @@ class StreamProcessExtractor extends Thread {
     private final DownloadProgressCallback callback;
 
     private Pattern p = Pattern.compile("\\[download\\]\\s+(\\d+\\.\\d)% .* ETA (\\d+):(\\d+)");
+    private Pattern fileNamePattern = Pattern.compile("(?<=Destination: ).*");
 
     private static final String TAG = "StreamProcessExtractor";
 
@@ -37,6 +38,7 @@ class StreamProcessExtractor extends Thread {
                 buffer.append((char) nextChar);
                 if (nextChar == '\r' && callback != null) {
                     processOutputLine(currentLine.toString());
+                    getFileName(currentLine.toString());
                     currentLine.setLength(0);
                     continue;
                 }
@@ -55,6 +57,18 @@ class StreamProcessExtractor extends Thread {
             callback.onProgressUpdate(progress, eta);
         }
     }
+
+    private void getFileName(String line){
+        //Log.w("Stringmatcher","---------------------------------------------------------------------------->"+line+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<END");
+        Matcher m = fileNamePattern.matcher(line);
+        if (m.find()) {
+            Log.w("Got the file name webp",m.group(0));
+            callback.onFileNameReceived(m.group(0));
+        }
+
+
+    }
+
 
     private int convertToSeconds(String minutes, String seconds) {
         return Integer.parseInt(minutes) * 60 + Integer.parseInt(seconds);
