@@ -54,16 +54,13 @@ public class DownloadFragment extends DialogFragment {
         downloadButtonInDialog = view.findViewById(R.id.downloadBttonInDialog);
         downloadButtonInDialog.setEnabled(false);
 
-        downloadButtonInDialog.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-                ((MainActivity) context).etUrl.setText(url);
-                ((MainActivity) context).tvName.setText(videoName);
-                ((MainActivity) context).startDownload();
+        downloadButtonInDialog.setOnClickListener(v -> {
+            dismiss();
+            ((MainActivity) context).etUrl.setText(url);
+            ((MainActivity) context).tvName.setText(videoName);
+            ((MainActivity) context).startDownload();
 
 
-            }
         });
 
 
